@@ -19,4 +19,6 @@ public interface ProdutoRepository extends JpaRepository<Produto, Integer> {
 	@Transactional(readOnly=true)
 	@Query("SELECT DISTINCT obj FROM Produto obj INNER JOIN obj.categorias cat WHERE obj.nome LIKE %:nome% AND cat IN :categorias")
 	Page<Produto> findDistinctByNomeContainingAndCategoriasIn(@Param("nome") String nome, @Param("categorias") List<Categoria> categorias, Pageable pageRequest);
+	//Page<Produto> findDistinctByNomeContainingAndCategoriasIn(String nome,List<Categoria> categorias, Pageable pageRequest);
+	//A consulta pode ser feitas dessas duas maneiras, sendo que na primeira ver~sao, é usando JPQL e a outra usando o framework do spring data
 }
