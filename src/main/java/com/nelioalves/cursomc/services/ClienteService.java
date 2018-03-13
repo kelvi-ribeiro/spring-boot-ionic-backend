@@ -29,6 +29,7 @@ import com.nelioalves.cursomc.services.exceptions.ObjectNotFoundException;
 
 @Service
 public class ClienteService {
+	
 	@Autowired
 	private BCryptPasswordEncoder pe;
 	
@@ -45,10 +46,12 @@ public class ClienteService {
 	private S3Service s3Service;
 	
 	public Cliente find(Integer id) {
+		
 		UserSS user = UserService.authenticated();
-		if(user==null || !user.hasRole(Perfil.ADMIN) && !id.equals(user.getId()) ) {
+		if (user==null || !user.hasRole(Perfil.ADMIN) && !id.equals(user.getId())) {
 			throw new AuthorizationException("Acesso negado");
 		}
+		
 		Cliente obj = repo.findOne(id);
 		if (obj == null) {
 			throw new ObjectNotFoundException("Objeto não encontrado! Id: " + id
@@ -76,7 +79,7 @@ public class ClienteService {
 			repo.delete(id);
 		}
 		catch (DataIntegrityViolationException e) {
-			throw new DataIntegrityException("Não é possível excluir porque há pedidos relacionadas");
+			throw new DataIntegrityException("Não é possível excluir porque há pedidos relacionados");
 		}
 	}
 	
@@ -90,7 +93,7 @@ public class ClienteService {
 	}
 	
 	public Cliente fromDTO(ClienteDTO objDto) {
-		return new Cliente(objDto.getId(), objDto.getNome(), objDto.getEmail(), null, null,null);
+		return new Cliente(objDto.getId(), objDto.getNome(), objDto.getEmail(), null, null, null);
 	}
 
 	public Cliente fromDTO(ClienteNewDTO objDto) {
@@ -115,7 +118,18 @@ public class ClienteService {
 	}
 	
 	public URI uploadProfilePicture(MultipartFile multipartFile) {
-		return s3Service.uploadFile(multipartFile);
 		
+		UserSS user = UserService.authenticated();
+		if (user == null) {
+			throw new AuthorizationException("Acesso negado");
+		}
+		
+		URI uri = s3Service.uploadFile(multipartFile);
+		
+		Cliente cli = repo.findOne(user.getId());
+		cli.setImageUrl(uri.toString());
+		repo.save(cli);
+		
+		return uri;
 	}
 }
