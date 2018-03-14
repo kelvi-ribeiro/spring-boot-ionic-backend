@@ -32,6 +32,10 @@ import com.nelioalves.cursomc.services.exceptions.ObjectNotFoundException;
 @Service
 public class ClienteService {
 	
+	@Value("${img.profile.size}")
+	private int size;
+	
+	
 	@Value("${img.prefix.client.profile}")
 	private String prefix;
 	
@@ -133,6 +137,9 @@ public class ClienteService {
 		}
 		
 		BufferedImage jpgImage = imageService.getJpgImageFromFile(multipartFile);
+		jpgImage = imageService.cropSquare(jpgImage);	
+		jpgImage = imageService.resize(jpgImage, size);
+		
 		
 		String fileName = prefix + user.getId() + ".jpg";
 		
