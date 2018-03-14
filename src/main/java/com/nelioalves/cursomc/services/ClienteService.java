@@ -1,9 +1,11 @@
 package com.nelioalves.cursomc.services;
 
+import java.awt.image.BufferedImage;
 import java.net.URI;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -30,6 +32,9 @@ import com.nelioalves.cursomc.services.exceptions.ObjectNotFoundException;
 @Service
 public class ClienteService {
 	
+	@Value("${img.prefix.client.profile}")
+	private String prefix;
+	
 	@Autowired
 	private BCryptPasswordEncoder pe;
 	
@@ -41,6 +46,9 @@ public class ClienteService {
 	
 	@Autowired
 	private EnderecoRepository enderecoRepository;
+	
+	@Autowired
+	private ImageService imageService;
 	
 	@Autowired
 	private S3Service s3Service;
@@ -124,12 +132,11 @@ public class ClienteService {
 			throw new AuthorizationException("Acesso negado");
 		}
 		
-		URI uri = s3Service.uploadFile(multipartFile);
+		BufferedImage jpgImage = imageService.getJpgImageFromFile(multipartFile);
 		
-		Cliente cli = repo.findOne(user.getId());
-		cli.setImageUrl(uri.toString());
-		repo.save(cli);
+		String fileName = prefix + user.getId() + ".jpg";
 		
-		return uri;
+		return s3Service.uploadFile(imageService.getInputStream(jpgImage, "jpg"), fileName, "image");	
+		
 	}
 }
